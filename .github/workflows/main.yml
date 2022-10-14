@@ -1,4 +1,5 @@
 name: CI/CD Workflow
+
 on:
   push:
     branches:
@@ -13,7 +14,7 @@ jobs:
       - name: Setup node
         uses: actions/setup-node@v2
         with:
-          node-version: '17'
+          node-version: '16'
       - name: Install dependencies
         run: npm ci
       - name: Formatting and linting
@@ -23,10 +24,26 @@ jobs:
           npm run tsc:check
       - name: Tests
         run: npm run test
-      - name: Delply to Netlify
+      - name: Build production website
+        run: npm run build
+      - name: Deploy to dev environment
+        id: deploy_dev
         uses: netlify/actions/cli@master
         with:
-          args: deploy --dir=site
+          args: deploy --dir=dist
+        env:
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+      - name: Run E2E tests
+        uses: cypress-io/github-action@v2
+        with:
+          browser: chrome
+          config-file: cypress/config/cypress-base.json
+          env: WEB_APP_URI=${{ steps.deploy_dev.outputs.NETLIFY_URL }}
+      - name: Deploy to prod environment
+        uses: netlify/actions/cli@master
+        with:
+          args: deploy --dir=dist --prod
         env:
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
