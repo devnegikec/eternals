@@ -7,7 +7,7 @@ describe('tests the app root component', function() {
         render(<App />);
         // expect(getByTestId('awesom')).toBeInTheDocument();
         expect(
-            getByTestId(document.documentElement, 'awesome1'),
+            getByTestId(document.documentElement, 'awesome'),
           ).toBeInTheDocument()
     })
 });
